@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AMOUNT</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<style>
+body,h1 {font-family: "Raleway", sans-serif}
+body, html {height: 100%}
+.bgimg {
+  background-image: url('https://www.w3schools.com/w3images/forestbridge.jpg');
+  min-height: 100%;
+  background-position: center;
+  background-size: cover;
+}
+</style>
+</head>
+    <body>
+	<div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
+  <div class="w3-display-topleft w3-padding-large w3-xlarge">
+  </div>
+  <div class="w3-display-middle">
+    <h1 class="w3-jumbo w3-animate-top"><p id="myText"></p></h1>
+    <hr class="w3-border-grey" style="margin:auto;width:100%">
+  </div>
+  <div class="w3-display-center w3-padding-large">
+    <a href="https://www.w3schools.com/w3css/default.asp" target="_blank"></a>
+        <script>
+            var date1 = new Date("07/01/2022");
+			var date2 = new Date();
+			var amount1 =  5301.1643;
+			var Difference_In_Time = date2.getTime() - date1.getTime();
+			var Difference_In_Days = Math.floor(Difference_In_Time / (1000 * 3600 * 24));
+			var amount2 = amount1*((1+(10/100/365)))**Difference_In_Days;var text = document.getElementById("myText");
+            var tag = document.getElementById("myTextTag");
+            var toWrite = "AMOUNT DUE: <br> $" 
+               + amount2.toFixed(2)
+            text.innerHTML = toWrite
+        </script>
+  </div>
+</div>
+    </body>
+</html>
