@@ -28,17 +28,17 @@ body, html {height: 100%}
   <div class="w3-display-center w3-padding-large">
     <a href="https://www.w3schools.com/w3css/default.asp" target="_blank"></a>
         <script>
-            var date1 = new Date("07/01/2022");
+            var date1 = new Date("05/31/2022");
 			var date2 = new Date();
-			var amount1 =  5301.1643;
+			var amount1 =  5250;
 			var Difference_In_Time = date2.getTime() - date1.getTime();
 			var Difference_In_Days = Math.floor(Difference_In_Time / (1000 * 3600 * 24));
-			var amount2 = amount1*((1+(10/100/365)))**Difference_In_Days;var text = document.getElementById("myText");
+			var amount2 = amount1*((1+(10/100/365*Difference_In_Days)));var text = document.getElementById("myText");
             var date3 = new Date("08/28/2021");
 var amount3 = 10000;
 var Difference_In_Time1 = date2.getTime() - date3.getTime();
 			var Difference_In_Days1 = Math.floor(Difference_In_Time1 / (1000 * 3600 * 24));
-var amount4 = amount3*((1+(10/100/365)))**Difference_In_Days1;
+var amount4 = amount3*((1+(10/100/365×Difference_In_Days1)));
 var tag = document.getElementById("myTextTag");
             var toWrite = "AMOUNT DUE: <br> Vaibhav: $" 
                + amount2.toFixed(2) + "<br> Prem: $" + amount4.toFixed(2)
