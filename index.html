@@ -1,50 +1,232 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Loan Due</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-<style>
-body,h1 {font-family: "Raleway", sans-serif}
-body, html {height: 100%}
-.bgimg {
-  background-image: url('https://www.w3schools.com/w3images/forestbridge.jpg');
-  min-height: 100%;
-  background-position: center;
-  background-size: cover;
-}
-</style>
+    <title>Loan Balance Calculator</title>
+    <style>
+        /* Previous styles remain the same */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .loan-details {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .chart {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+        .projection-note {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+    </style>
 </head>
-    <body>
-	<div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
-  <div class="w3-display-topleft w3-padding-large w3-xlarge">
-  </div>
-  <div class="w3-display-middle">
-    <h1 class="w3-jumbo w3-animate-top"><p id="myText"></p></h1>
-    <hr class="w3-border-grey" style="margin:auto;width:100%">
-  </div>
-  <div class="w3-display-center w3-padding-large">
-    <a href="https://www.w3schools.com/w3css/default.asp" target="_blank"></a>
-        <script>
-            var date1 = new Date("05/31/2022");
-			var date2 = new Date();
-			var amount1 =  5250;
-			var Difference_In_Time = date2.getTime() - date1.getTime();
-			var Difference_In_Days = Math.floor(Difference_In_Time / (1000 * 3600 * 24));
-			var amount2 = amount1*((1+(10/100/365*Difference_In_Days)));var text = document.getElementById("myText");
-            var date3 = new Date("08/27/2022");
-var amount3 = 11000;
-var Difference_In_Time1 = date2.getTime() - date3.getTime();
-			var Difference_In_Days1 = Math.floor(Difference_In_Time1 / (1000 * 3600 * 24));
-var amount4 = amount3*((1+(15/100/365*Difference_In_Days1)));
-var tag = document.getElementById("myTextTag");
-            var toWrite = "AMOUNT DUE: <br> Vaibhav: $" 
-               + amount2.toFixed(2) + "<br> Prem: $" + amount4.toFixed(2)
-            text.innerHTML = toWrite
-        </script>
-  </div>
-</div>
-    </body>
+<body>
+    <h1>Loan Balance Calculator</h1>
+    <div class="loan-details">
+        <h2>Current Loan Balances</h2>
+        <div id="currentBalance"></div>
+    </div>
+
+    <div class="loan-details">
+        <h2>Balance History and 10-Year Projection</h2>
+        <canvas id="balanceChart" class="chart"></canvas>
+        <p class="projection-note">Dashed lines indicate projected future balances</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script>
+        // Payment history format: Array of [date (YYYY-MM-DD), amount]
+        const Vaibhav_Pay = [
+            //['2022-03-15', 1000],
+            //['2023-06-01', 2000]
+        ];
+
+        const Prem_Pay = [
+            //['2022-01-10', 2500],
+            //['2023-12-25', 3000]
+        ];
+
+        function calculateBalance(principal, startDate, firstYearRate, subsequentRate, payments, includeProjection = false) {
+            const today = new Date();
+            const projectionEndDate = new Date(today);
+            projectionEndDate.setFullYear(projectionEndDate.getFullYear() + 10);
+            
+            let balance = principal;
+            let currentDate = new Date(startDate);
+            const balanceHistory = [{
+                date: new Date(startDate),
+                balance: balance,
+                isProjected: false
+            }];
+
+            // Sort payments by date
+            const sortedPayments = [...payments].sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            let nextPaymentIndex = 0;
+
+            let currentBalance = balance;
+            
+            while (currentDate <= (includeProjection ? projectionEndDate : today)) {
+                const yearsPassed = (currentDate.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24 * 365);
+                const rate = yearsPassed < 1 ? firstYearRate : subsequentRate;
+                
+                // Check for payments
+                if (nextPaymentIndex < sortedPayments.length) {
+                    const paymentDate = new Date(sortedPayments[nextPaymentIndex][0]);
+                    if (currentDate.getTime() >= paymentDate.getTime()) {
+                        balance -= sortedPayments[nextPaymentIndex][1];
+                        nextPaymentIndex++;
+                        balanceHistory.push({
+                            date: new Date(currentDate),
+                            balance: balance,
+                            isProjected: false
+                        });
+                    }
+                }
+
+                // Calculate daily interest rate
+                const dailyRate = rate / 365;
+                
+                // Calculate new balance
+                balance *= (1 + dailyRate / 100);
+                
+                // Store monthly points for the graph
+                if (currentDate.getDate() === 1 || currentDate >= (includeProjection ? projectionEndDate : today)) {
+                    balanceHistory.push({
+                        date: new Date(currentDate),
+                        balance: balance,
+                        isProjected: currentDate > today
+                    });
+                }
+
+                // Store current balance if we're at today's date
+                if (currentDate <= today) {
+                    currentBalance = balance;
+                }
+
+                // Add one day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return {
+                currentBalance: currentBalance,
+                projectedBalance: balance,
+                history: balanceHistory
+            };
+        }
+
+        // Calculate balances with projections
+        const loan1 = calculateBalance(5000, '2021-05-31', 5, 10, Vaibhav_Pay, true);
+        const loan2 = calculateBalance(10000, '2021-08-27', 10, 15, Prem_Pay, true);
+
+        // Display current balances
+        const balanceDiv = document.getElementById('currentBalance');
+        balanceDiv.innerHTML = `
+            <table>
+                <tr>
+                    <th>Loan</th>
+                    <th>Original Amount</th>
+                    <th>Current Balance</th>
+                    <th>Projected Balance (2035)</th>
+                    <th>Start Date</th>
+                </tr>
+                <tr>
+                    <td>Vaibhav</td>
+                    <td>$5,000.00</td>
+                    <td>$${loan1.currentBalance.toFixed(2)}</td>
+                    <td>$${loan1.projectedBalance.toFixed(2)}</td>
+                    <td>May 31, 2021</td>
+                </tr>
+                <tr>
+                    <td>Prem</td>
+                    <td>$10,000.00</td>
+                    <td>$${loan2.currentBalance.toFixed(2)}</td>
+                    <td>$${loan2.projectedBalance.toFixed(2)}</td>
+                    <td>Aug 27, 2021</td>
+                </tr>
+            </table>
+        `;
+
+        // Combine historical and projected data
+        function combineData(data) {
+            return data.map(point => ({
+                x: point.date,
+                y: point.balance
+            }));
+        }
+
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Vaibhav\'s Loan',
+                        data: combineData(loan1.history),
+                        borderColor: 'rgb(75, 192, 192)',
+                        segment: {
+                            borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
+                        },
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Prem\'s Loan',
+                        data: combineData(loan2.history),
+                        borderColor: 'rgb(255, 99, 132)',
+                        segment: {
+                            borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
+                        },
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'year'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Balance ($)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
 </html>
