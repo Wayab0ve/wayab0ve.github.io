@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loan Calculator</title>
+    <title>Loan Dashboard</title>
     <style>
         :root {
             --primary-color: #1a365d;
@@ -138,11 +138,18 @@
             font-weight: 700;
             color: var(--primary-color);
         }
+
+        .rate-history {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: var(--card-background);
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="header-container">
-        <h1>Loan Portfolio Dashboard</h1>
+        <h1>Loan Dashboard</h1>
     </div>
 
     <div class="loan-details">
@@ -151,7 +158,12 @@
     </div>
 
     <div class="loan-details">
-        <h2>Balance History and 30-Year Projection</h2>
+        <h2>Interest Rate History</h2>
+        <div id="rateHistory"></div>
+    </div>
+
+    <div class="loan-details">
+        <h2>Balance History and Projection</h2>
         <canvas id="balanceChart" class="chart"></canvas>
         <p class="projection-note">Dashed lines indicate projected future balances based on current interest rates</p>
     </div>
@@ -159,7 +171,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script>
-        // Payment history format: Array of [date (YYYY-MM-DD), amount]
+        // Payment history
         const Vaibhav_Pay = [
             //['2022-03-15', 1000],
             //['2023-06-01', 2000]
@@ -169,11 +181,64 @@
             //['2022-01-10', 2500],
             //['2023-12-25', 3000]
         ];
+		
+		const CompareWithCreditCard_Pay = [
+            //['2022-01-10', 2500],
+            //['2023-12-25', 3000]
+        ];
+		
+		// Loan interest rate configuration with date-based changes
+        const loanInterestRates = {
+            Vaibhav: {
+                rateChanges: [
+                    {
+                        date: '2021-06-01',
+                        firstYear: 5,
+                        subsequent: 10
+                    }
+                ]
+            },
+            Prem: {
+                rateChanges: [
+                    {
+                        date: '2021-08-27',
+                        firstYear: 10,
+                        subsequent: 15
+                    }
+                ]
+            },
+			CompareWithCreditCard: {
+                rateChanges: [
+                    {
+                        date: '2021-08-27',
+                        firstYear: 0,
+                        subsequent: 24.26
+                    }
+                ]
+            }
+        };
 
-        function calculateBalance(principal, startDate, firstYearRate, subsequentRate, payments, includeProjection = false) {
+        // Helper function to get applicable interest rates for a given date
+        function getApplicableRates(loanType, date) {
+            const changes = loanInterestRates[loanType].rateChanges
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const applicableChange = changes
+                .filter(change => new Date(change.date) <= new Date(date))
+                .pop();
+            
+            return applicableChange || changes[0];
+        }	
+
+        function calculateBalance(principal, startDate, loanType, payments, includeProjection = false) {
             const today = new Date();
             const projectionEndDate = new Date(today);
-            projectionEndDate.setFullYear(projectionEndDate.getFullYear() + 30);
+			const numofyears = 30;
+			// Calculate the projection end year based on the number of years
+			const currentYear = new Date().getFullYear();
+			const projectedYear = currentYear + numofyears;
+
+            projectionEndDate.setFullYear(projectionEndDate.getFullYear() + numofyears);
             
             let balance = principal;
             let currentDate = new Date(startDate);
@@ -188,8 +253,9 @@
             let currentBalance = balance;
             
             while (currentDate <= (includeProjection ? projectionEndDate : today)) {
+                const rates = getApplicableRates(loanType, currentDate);
                 const yearsPassed = (currentDate.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24 * 365);
-                const rate = yearsPassed < 1 ? firstYearRate : subsequentRate;
+                const rate = yearsPassed <= 1 ? rates.firstYear : rates.subsequent;
                 
                 if (nextPaymentIndex < sortedPayments.length) {
                     const paymentDate = new Date(sortedPayments[nextPaymentIndex][0]);
@@ -225,26 +291,83 @@
             return {
                 currentBalance: currentBalance,
                 projectedBalance: balance,
-                history: balanceHistory
+                history: balanceHistory,
+				projectedYear: projectedYear
             };
         }
 
-        const loan1 = calculateBalance(5000, '2021-06-01', 5, 10, Vaibhav_Pay, true);
-        const loan2 = calculateBalance(10000, '2021-08-27', 10, 15, Prem_Pay, true);
+        // Function to add a new rate change
+        function addRateChange(loanType, date, firstYearRate, subsequentRate) {
+            if (!loanInterestRates[loanType]) {
+                loanInterestRates[loanType] = { rateChanges: [] };
+            }
+            
+            loanInterestRates[loanType].rateChanges.push({
+                date: date,
+                firstYear: firstYearRate,
+                subsequent: subsequentRate
+            });
+            
+            loanInterestRates[loanType].rateChanges.sort((a, b) => 
+                new Date(a.date) - new Date(b.date)
+            );
+        }
 
+        // Function to display rate history
+        function displayRateHistory() {
+			const rateHistoryDiv = document.getElementById('rateHistory');
+			let html = '<table><tr><th>Loan Type</th><th>Date</th><th>First Year Rate</th><th>Subsequent Rate</th></tr>';
+			
+			for (const [loanType, data] of Object.entries(loanInterestRates)) {
+				data.rateChanges.forEach(change => {
+					// Convert the date to a Date object
+					const date = new Date(change.date);
+					
+					// Manually add 1 day to the date
+					date.setDate(date.getDate() + 1);
+
+					// Manually format the date to "June 1, 2021"
+					const options = { year: 'numeric', month: 'short', day: 'numeric' };
+					const formattedDate = date.toLocaleDateString('en-US', options);
+
+					html += `
+						<tr>
+							<td>${loanType}</td>
+							<td>${formattedDate}</td>
+							<td>${change.firstYear}%</td>
+							<td>${change.subsequent}%</td>
+						</tr>
+					`;
+				});
+			}
+			
+			html += '</table>';
+			rateHistoryDiv.innerHTML = html;
+		}
+
+
+
+
+        // Calculate loans
+        const loan1 = calculateBalance(5000, '2021-06-01', 'Vaibhav', Vaibhav_Pay, true);
+        const loan2 = calculateBalance(10000, '2021-08-27', 'Prem', Prem_Pay, true);
+		const loan3 = calculateBalance(15000, '2021-08-27', 'CompareWithCreditCard', CompareWithCreditCard_Pay, true);
+
+        // Display current balances
         const balanceDiv = document.getElementById('currentBalance');
         balanceDiv.innerHTML = `
             <div class="summary-stats">
                 <div class="stat-card">
-                    <div class="stat-label">Total Current Balance</div>
-                    <div class="stat-value">$${(loan1.currentBalance + loan2.currentBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
-                </div>
-                <div class="stat-card">
                     <div class="stat-label">Total Original Amount</div>
                     <div class="stat-value">$15,000.00</div>
                 </div>
+				<div class="stat-card">
+                    <div class="stat-label">Total Current Balance</div>
+                    <div class="stat-value">$${(loan1.currentBalance + loan2.currentBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                </div>
+                
                 <div class="stat-card">
-                    <div class="stat-label">Total Projected (2055)</div>
+                    <div class="stat-label">Total Projected (${loan1.projectedYear})</div>
                     <div class="stat-value">$${(loan1.projectedBalance + loan2.projectedBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
                 </div>
             </div>
@@ -253,7 +376,7 @@
                     <th>Loan</th>
                     <th>Original Amount</th>
                     <th>Current Balance</th>
-                    <th>Projected Balance (2055)</th>
+                    <th>Projected Balance (${loan1.projectedYear})</th>
                     <th>Start Date</th>
                 </tr>
                 <tr>
@@ -261,7 +384,7 @@
                     <td>$5,000.00</td>
                     <td>$${loan1.currentBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
                     <td>$${loan1.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-                    <td>June 1, 2021</td>
+                    <td>Jun 1, 2021</td>
                 </tr>
                 <tr>
                     <td>Prem</td>
@@ -270,9 +393,20 @@
                     <td>$${loan2.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
                     <td>Aug 27, 2021</td>
                 </tr>
+				<tr>
+                    <td>Compare With Credit Card</td>
+                    <td>$15,000.00</td>
+                    <td>$${loan3.currentBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td>$${loan3.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td>Aug 27, 2021</td>
+                </tr>
             </table>
         `;
 
+        // Display rate history
+        displayRateHistory();
+
+        // Create chart
         function combineData(data) {
             return data.map(point => ({
                 x: point.date,
