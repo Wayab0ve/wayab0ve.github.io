@@ -75,7 +75,7 @@
         function calculateBalance(principal, startDate, firstYearRate, subsequentRate, payments, includeProjection = false) {
             const today = new Date();
             const projectionEndDate = new Date(today);
-            projectionEndDate.setFullYear(projectionEndDate.getFullYear() + 10);
+            projectionEndDate.setFullYear(projectionEndDate.getFullYear() + 30);
             
             let balance = principal;
             let currentDate = new Date(startDate);
@@ -152,21 +152,21 @@
                     <th>Loan</th>
                     <th>Original Amount</th>
                     <th>Current Balance</th>
-                    <th>Projected Balance (2035)</th>
+                    <th>Projected Balance (2055)</th>
                     <th>Start Date</th>
                 </tr>
                 <tr>
                     <td>Vaibhav</td>
                     <td>$5,000.00</td>
-                    <td>$${loan1.currentBalance.toFixed(2)}</td>
-                    <td>$${loan1.projectedBalance.toFixed(2)}</td>
-                    <td>June 1, 2021</td>
+                    <td>$${loan1.currentBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+					<td>$${loan1.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+					<td>June 1, 2021</td>
                 </tr>
                 <tr>
                     <td>Prem</td>
                     <td>$10,000.00</td>
-                    <td>$${loan2.currentBalance.toFixed(2)}</td>
-                    <td>$${loan2.projectedBalance.toFixed(2)}</td>
+                    <td>$${loan2.currentBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+					<td>$${loan2.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
                     <td>Aug 27, 2021</td>
                 </tr>
             </table>
@@ -193,7 +193,7 @@
                             borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
                         },
                         tension: 0.1,
-                        pointRadius: ctx => ctx.p0.parsed.x <= new Date() ? 0 : 3  // Remove points for historical data
+						pointRadius: 0
                     },
                     {
                         label: 'Prem\'s Loan',
@@ -203,7 +203,7 @@
                             borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
                         },
                         tension: 0.1,
-                        pointRadius: ctx => ctx.p0.parsed.x <= new Date() ? 0 : 3  // Remove points for historical data
+						pointRadius: 0
                     }
                 ]
             },
@@ -226,7 +226,14 @@
                             text: 'Balance ($)'
                         }
                     }
-                }
+                },
+				plugins: {
+					legend: {
+						labels: {
+							boxWidth: 10.0
+						}
+					}
+				}
             }
         });
     </script>
