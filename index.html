@@ -46,7 +46,7 @@
     </style>
 </head>
 <body>
-    <h1>Loan Balance Calculator</h1>
+    <h1>Loan Calculator</h1>
     <div class="loan-details">
         <h2>Current Loan Balances</h2>
         <div id="currentBalance"></div>
@@ -192,7 +192,8 @@
                         segment: {
                             borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
                         },
-                        tension: 0.1
+                        tension: 0.1,
+                        pointRadius: ctx => ctx.p0.parsed.x <= new Date() ? 0 : 3  // Remove points for historical data
                     },
                     {
                         label: 'Prem\'s Loan',
@@ -201,7 +202,8 @@
                         segment: {
                             borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
                         },
-                        tension: 0.1
+                        tension: 0.1,
+                        pointRadius: ctx => ctx.p0.parsed.x <= new Date() ? 0 : 3  // Remove points for historical data
                     }
                 ]
             },
