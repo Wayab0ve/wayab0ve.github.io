@@ -3,59 +3,157 @@
 <head>
     <title>Loan Calculator</title>
     <style>
-        /* Previous styles remain the same */
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #4299e1;
+            --background-color: #f7fafc;
+            --card-background: #ffffff;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            background-color: var(--background-color);
+            color: #2d3748;
         }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 2.5rem;
+            margin: 2rem 0;
+            font-weight: 700;
+        }
+
         .loan-details {
-            background-color: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
+            background-color: var(--card-background);
+            padding: 2rem;
+            border-radius: 12px;
             margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
         }
+
+        .loan-details:hover {
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
+
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            padding: 1rem;
             text-align: left;
+            border: none;
         }
+
         th {
-            background-color: #4CAF50;
+            background-color: var(--primary-color);
             color: white;
+            font-weight: 600;
         }
+
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #edf2f7;
         }
+
+        tr:nth-child(odd) {
+            background-color: #f7fafc;
+        }
+
+        tr:hover {
+            background-color: #e6e6e6;
+        }
+
         .chart {
             width: 100%;
-            height: 400px;
+            height: 500px;
             margin-top: 20px;
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 1rem;
         }
+
         .projection-note {
-            color: #666;
+            color: #718096;
             font-style: italic;
             margin-top: 10px;
+            text-align: center;
+        }
+
+        .header-container {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .header-container h1 {
+            color: white;
+            margin: 0;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: var(--card-background);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <h1>Loan Calculator</h1>
+    <div class="header-container">
+        <h1>Loan Portfolio Dashboard</h1>
+    </div>
+
     <div class="loan-details">
         <h2>Current Loan Balances</h2>
         <div id="currentBalance"></div>
     </div>
 
     <div class="loan-details">
-        <h2>Balance History and 10-Year Projection</h2>
+        <h2>Balance History and 30-Year Projection</h2>
         <canvas id="balanceChart" class="chart"></canvas>
-        <p class="projection-note">Dashed lines indicate projected future balances</p>
+        <p class="projection-note">Dashed lines indicate projected future balances based on current interest rates</p>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
@@ -85,17 +183,14 @@
                 isProjected: false
             }];
 
-            // Sort payments by date
             const sortedPayments = [...payments].sort((a, b) => new Date(a[0]) - new Date(b[0]));
             let nextPaymentIndex = 0;
-
             let currentBalance = balance;
             
             while (currentDate <= (includeProjection ? projectionEndDate : today)) {
                 const yearsPassed = (currentDate.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24 * 365);
                 const rate = yearsPassed < 1 ? firstYearRate : subsequentRate;
                 
-                // Check for payments
                 if (nextPaymentIndex < sortedPayments.length) {
                     const paymentDate = new Date(sortedPayments[nextPaymentIndex][0]);
                     if (currentDate.getTime() >= paymentDate.getTime()) {
@@ -109,13 +204,9 @@
                     }
                 }
 
-                // Calculate daily interest rate
                 const dailyRate = rate / 365;
-                
-                // Calculate new balance
                 balance *= (1 + dailyRate / 100);
                 
-                // Store monthly points for the graph
                 if (currentDate.getDate() === 1 || currentDate >= (includeProjection ? projectionEndDate : today)) {
                     balanceHistory.push({
                         date: new Date(currentDate),
@@ -124,12 +215,10 @@
                     });
                 }
 
-                // Store current balance if we're at today's date
                 if (currentDate <= today) {
                     currentBalance = balance;
                 }
 
-                // Add one day
                 currentDate.setDate(currentDate.getDate() + 1);
             }
             
@@ -140,13 +229,25 @@
             };
         }
 
-        // Calculate balances with projections
         const loan1 = calculateBalance(5000, '2021-06-01', 5, 10, Vaibhav_Pay, true);
         const loan2 = calculateBalance(10000, '2021-08-27', 10, 15, Prem_Pay, true);
 
-        // Display current balances
         const balanceDiv = document.getElementById('currentBalance');
         balanceDiv.innerHTML = `
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total Current Balance</div>
+                    <div class="stat-value">$${(loan1.currentBalance + loan2.currentBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Original Amount</div>
+                    <div class="stat-value">$15,000.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Projected (2055)</div>
+                    <div class="stat-value">$${(loan1.projectedBalance + loan2.projectedBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                </div>
+            </div>
             <table>
                 <tr>
                     <th>Loan</th>
@@ -159,20 +260,19 @@
                     <td>Vaibhav</td>
                     <td>$5,000.00</td>
                     <td>$${loan1.currentBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-					<td>$${loan1.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-					<td>June 1, 2021</td>
+                    <td>$${loan1.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td>June 1, 2021</td>
                 </tr>
                 <tr>
                     <td>Prem</td>
                     <td>$10,000.00</td>
                     <td>$${loan2.currentBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-					<td>$${loan2.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
+                    <td>$${loan2.projectedBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
                     <td>Aug 27, 2021</td>
                 </tr>
             </table>
         `;
 
-        // Combine historical and projected data
         function combineData(data) {
             return data.map(point => ({
                 x: point.date,
@@ -188,52 +288,84 @@
                     {
                         label: 'Vaibhav\'s Loan',
                         data: combineData(loan1.history),
-                        borderColor: 'rgb(75, 192, 192)',
+                        borderColor: '#2b6cb0',
+                        backgroundColor: 'rgba(66, 153, 225, 0.1)',
+                        fill: true,
                         segment: {
                             borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
                         },
-                        tension: 0.1,
-						pointRadius: 0
+                        tension: 0.4,
+                        pointRadius: 0
                     },
                     {
                         label: 'Prem\'s Loan',
                         data: combineData(loan2.history),
-                        borderColor: 'rgb(255, 99, 132)',
+                        borderColor: '#ed64a6',
+                        backgroundColor: 'rgba(237, 100, 166, 0.1)',
+                        fill: true,
                         segment: {
                             borderDash: ctx => ctx.p0.parsed.x > new Date() ? [15, 15] : undefined
                         },
-                        tension: 0.1,
-						pointRadius: 0
+                        tension: 0.4,
+                        pointRadius: 0
                     }
                 ]
             },
             options: {
                 responsive: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
                 scales: {
                     x: {
                         type: 'time',
                         time: {
                             unit: 'year'
                         },
+                        grid: {
+                            display: false
+                        },
                         title: {
                             display: true,
-                            text: 'Date'
+                            text: 'Date',
+                            color: '#718096'
                         }
                     },
                     y: {
+                        grid: {
+                            color: '#e2e8f0'
+                        },
                         title: {
                             display: true,
-                            text: 'Balance ($)'
+                            text: 'Balance ($)',
+                            color: '#718096'
                         }
                     }
                 },
-				plugins: {
-					legend: {
-						labels: {
-							boxWidth: 10.0
-						}
-					}
-				}
+                plugins: {
+                    legend: {
+                        labels: {
+                            boxWidth: 10,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(26, 54, 93, 0.9)',
+                        padding: 12,
+                        borderColor: '#ffffff',
+                        borderWidth: 1,
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: $${context.parsed.y.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+                            }
+                        }
+                    }
+                }
             }
         });
     </script>
