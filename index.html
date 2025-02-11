@@ -81,6 +81,13 @@
         tr:hover {
             background-color: #e6e6e6;
         }
+		
+		/* Scrollable Table */
+        .scrollable-table {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
 
         .chart {
             width: 100%;
@@ -161,6 +168,11 @@
         <h2>Interest Rate History</h2>
         <div id="rateHistory"></div>
     </div>
+	
+	<div class="loan-details">
+        <h2>Payment History</h2>
+        <div id="paymentHistory" class="scrollable-table"></div>
+    </div>
 
     <div class="loan-details">
         <h2>Balance History and Projection</h2>
@@ -182,10 +194,47 @@
             //['2023-12-25', 3000]
         ];
 		
-	const CompareWithCreditCard_Pay = [
+		const CompareWithCreditCard_Pay = [
             //['2022-01-10', 2500],
             //['2023-12-25', 3000]
         ];
+		
+		// Function to display sorted payment history
+		function displayPaymentHistory() {
+			const paymentHistoryDiv = document.getElementById('paymentHistory');
+			let html = '<table><tr><th>Payment Date</th><th>Loan</th><th>Amount</th></tr>';
+
+			const allPayments = [
+				...Vaibhav_Pay.map(payment => ({ date: payment[0], loan: 'Vaibhav', amount: payment[1] })),
+				...Prem_Pay.map(payment => ({ date: payment[0], loan: 'Prem', amount: payment[1] })),
+				...CompareWithCreditCard_Pay.map(payment => ({ date: payment[0], loan: 'CompareWithCreditCard', amount: payment[1] }))
+			];
+
+			// Sort the payment history by date (chronologically)
+			allPayments.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+			// Iterate over the sorted payment history and display it
+			allPayments.forEach(payment => {
+				const paymentDate = new Date(payment.date);
+				const formattedDate = paymentDate.toLocaleDateString('en-US', {
+					year: 'numeric', month: 'short', day: 'numeric'
+				});
+
+				html += `
+					<tr>
+						<td>${formattedDate}</td>
+						<td>${payment.loan}</td>
+						<td>$${payment.amount.toFixed(2)}</td>
+					</tr>
+				`;
+			});
+
+			html += '</table>';
+			paymentHistoryDiv.innerHTML = html;
+		}
+
+		// Call the function to display the payment history
+		displayPaymentHistory();
 		
 		// Loan interest rate configuration with date-based changes
         const loanInterestRates = {
@@ -316,7 +365,7 @@
         // Function to display rate history
         function displayRateHistory() {
 			const rateHistoryDiv = document.getElementById('rateHistory');
-			let html = '<table><tr><th>Loan Type</th><th>Date</th><th>First Year Rate</th><th>Subsequent Rate</th></tr>';
+			let html = '<table><tr><th>Loan</th><th>Date</th><th>First Year Rate</th><th>Subsequent Rate</th></tr>';
 			
 			for (const [loanType, data] of Object.entries(loanInterestRates)) {
 				data.rateChanges.forEach(change => {
@@ -344,9 +393,6 @@
 			html += '</table>';
 			rateHistoryDiv.innerHTML = html;
 		}
-
-
-
 
         // Calculate loans
         const loan1 = calculateBalance(5000, '2021-06-01', 'Vaibhav', Vaibhav_Pay, true);
