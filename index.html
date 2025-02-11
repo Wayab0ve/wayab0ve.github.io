@@ -280,70 +280,73 @@
         }	
 
         function calculateBalance(principal, startDate, loanType, payments, includeProjection = false) {
-            const today = new Date();
-            const projectionEndDate = new Date(today);
+			const today = new Date();
+			const startDateObj = new Date(startDate);
 			const numofyears = 30;
-			// Calculate the projection end year based on the number of years
-			const currentYear = new Date().getFullYear();
-			const projectedYear = currentYear + numofyears;
+			const projectionEndDate = new Date(startDateObj);
+			projectionEndDate.setFullYear(startDateObj.getFullYear() + numofyears);
+			
+			let balance = principal;
+			let currentDate = new Date(startDate);
+			const balanceHistory = [{
+				date: new Date(startDate),
+				balance: balance,
+				isProjected: false
+			}];
 
-            projectionEndDate.setFullYear(projectionEndDate.getFullYear() + numofyears);
-            
-            let balance = principal;
-            let currentDate = new Date(startDate);
-            const balanceHistory = [{
-                date: new Date(startDate),
-                balance: balance,
-                isProjected: false
-            }];
+			const sortedPayments = [...payments].sort((a, b) => new Date(a[0]) - new Date(b[0]));
+			let nextPaymentIndex = 0;
+			let currentBalance = balance;
+			
+			while (currentDate <= (includeProjection ? projectionEndDate : today)) {
+				const rates = getApplicableRates(loanType, currentDate);
+				
+				// Calculate years passed based on exact days since loan start
+				const daysPassed = (currentDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24);
+				const yearsPassed = daysPassed / 365;
+				const rate = yearsPassed <= 1 ? rates.firstYear : rates.subsequent;
+				
+				// Process any payments that occurred on this date
+				if (nextPaymentIndex < sortedPayments.length) {
+					const paymentDate = new Date(sortedPayments[nextPaymentIndex][0]);
+					if (currentDate.getTime() >= paymentDate.getTime()) {
+						balance -= sortedPayments[nextPaymentIndex][1];
+						nextPaymentIndex++;
+						balanceHistory.push({
+							date: new Date(currentDate),
+							balance: balance,
+							isProjected: false
+						});
+					}
+				}
 
-            const sortedPayments = [...payments].sort((a, b) => new Date(a[0]) - new Date(b[0]));
-            let nextPaymentIndex = 0;
-            let currentBalance = balance;
-            
-            while (currentDate <= (includeProjection ? projectionEndDate : today)) {
-                const rates = getApplicableRates(loanType, currentDate);
-                const yearsPassed = (currentDate.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24 * 365);
-                const rate = yearsPassed <= 1 ? rates.firstYear : rates.subsequent;
-                
-                if (nextPaymentIndex < sortedPayments.length) {
-                    const paymentDate = new Date(sortedPayments[nextPaymentIndex][0]);
-                    if (currentDate.getTime() >= paymentDate.getTime()) {
-                        balance -= sortedPayments[nextPaymentIndex][1];
-                        nextPaymentIndex++;
-                        balanceHistory.push({
-                            date: new Date(currentDate),
-                            balance: balance,
-                            isProjected: false
-                        });
-                    }
-                }
+				// Calculate daily interest
+				const dailyRate = rate / 365;
+				balance *= (1 + dailyRate / 100);
+				
+				// Record monthly balance points and final balance
+				if (currentDate.getDate() === 1 || currentDate >= (includeProjection ? projectionEndDate : today)) {
+					balanceHistory.push({
+						date: new Date(currentDate),
+						balance: balance,
+						isProjected: currentDate > today
+					});
+				}
 
-                const dailyRate = rate / 365;
-                balance *= (1 + dailyRate / 100);
-                
-                if (currentDate.getDate() === 1 || currentDate >= (includeProjection ? projectionEndDate : today)) {
-                    balanceHistory.push({
-                        date: new Date(currentDate),
-                        balance: balance,
-                        isProjected: currentDate > today
-                    });
-                }
+				if (currentDate <= today) {
+					currentBalance = balance;
+				}
 
-                if (currentDate <= today) {
-                    currentBalance = balance;
-                }
-
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-            
-            return {
-                currentBalance: currentBalance,
-                projectedBalance: balance,
-                history: balanceHistory,
-				projectedYear: projectedYear
-            };
-        }
+				currentDate.setDate(currentDate.getDate() + 1);
+			}
+			
+			return {
+				currentBalance: currentBalance,
+				projectedBalance: balance,
+				history: balanceHistory,
+				projectedYear: startDateObj.getFullYear() + numofyears
+			};
+		}
 
         // Function to add a new rate change
         function addRateChange(loanType, date, firstYearRate, subsequentRate) {
