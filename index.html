@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Loan Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             --primary-color: #1a365d;
@@ -15,7 +16,7 @@
             font-family: system-ui, -apple-system, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             background-color: var(--background-color);
             color: #2d3748;
         }
@@ -23,51 +24,57 @@
         h1 {
             color: var(--primary-color);
             text-align: center;
-            font-size: 2.5rem;
-            margin: 2rem 0;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin: 1rem 0;
             font-weight: 700;
         }
 
         .loan-details {
             background-color: var(--card-background);
-            padding: 2rem;
+            padding: 1rem;
             border-radius: 12px;
-            margin: 20px 0;
+            margin: 15px 0;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
-        }
-
-        .loan-details:hover {
-            transform: translateY(-2px);
         }
 
         h2 {
             color: var(--secondary-color);
             margin-top: 0;
-            font-size: 1.5rem;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
             border-bottom: 2px solid var(--accent-color);
             padding-bottom: 0.5rem;
+        }
+
+        /* Responsive table styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 15px 0;
+            border-radius: 8px;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            margin: 20px 0;
-            border-radius: 8px;
-            overflow: hidden;
+            min-width: 600px; /* Minimum width to prevent squishing */
         }
 
         th, td {
-            padding: 1rem;
+            padding: 0.75rem;
             text-align: left;
             border: none;
+            white-space: nowrap;
         }
 
         th {
             background-color: var(--primary-color);
             color: white;
             font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
 
         tr:nth-child(even) {
@@ -78,20 +85,18 @@
             background-color: #f7fafc;
         }
 
-        tr:hover {
-            background-color: #e6e6e6;
-        }
-		
-		/* Scrollable Table */
+        /* Scrollable table with fixed header */
         .scrollable-table {
             max-height: 300px;
             overflow-y: auto;
             margin-top: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
         }
 
         .chart {
             width: 100%;
-            height: 500px;
+            height: clamp(300px, 50vh, 500px);
             margin-top: 20px;
             background-color: var(--card-background);
             border-radius: 8px;
@@ -103,14 +108,15 @@
             font-style: italic;
             margin-top: 10px;
             text-align: center;
+            font-size: 0.875rem;
         }
 
         .header-container {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 2rem;
+            padding: 1.5rem 1rem;
             border-radius: 12px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             text-align: center;
         }
 
@@ -121,7 +127,7 @@
 
         .summary-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin: 1rem 0;
         }
@@ -141,16 +147,81 @@
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
             font-weight: 700;
             color: var(--primary-color);
         }
 
-        .rate-history {
-            margin-top: 2rem;
-            padding: 1rem;
-            background-color: var(--card-background);
-            border-radius: 8px;
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+
+            .loan-details {
+                padding: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            /* Make tables scrollable horizontally on mobile */
+            .table-container {
+                margin: 10px -8px;
+                padding: 0 8px;
+                width: calc(100% + 16px);
+            }
+
+            /* Adjust cell padding for mobile */
+            th, td {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            /* Stack cells for payment history on mobile */
+            .payment-history-table td {
+                display: block;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+
+            .payment-history-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0.5rem;
+                width: 45%;
+                text-align: left;
+                font-weight: 600;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #1a202c;
+                --card-background: #2d3748;
+                --primary-color: #4299e1;
+                --secondary-color: #63b3ed;
+                --accent-color: #90cdf4;
+            }
+
+            body {
+                color: #e2e8f0;
+            }
+
+            .stat-value {
+                color: #63b3ed;
+            }
+
+            tr:nth-child(even) {
+                background-color: #2d3748;
+            }
+
+            tr:nth-child(odd) {
+                background-color: #283141;
+            }
         }
     </style>
 </head>
