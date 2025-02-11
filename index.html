@@ -14,67 +14,63 @@
 
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            max-width: 1200px;
             margin: 0 auto;
-            padding: 10px;
             background-color: var(--background-color);
             color: #2d3748;
+            padding: 20px;
+        }
+
+        @media (min-width: 1200px) {
+            body {
+                max-width: 1200px;
+            }
         }
 
         h1 {
             color: var(--primary-color);
             text-align: center;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-size: 2rem;
             margin: 1rem 0;
             font-weight: 700;
         }
 
         .loan-details {
             background-color: var(--card-background);
-            padding: 1rem;
+            padding: 20px;
             border-radius: 12px;
-            margin: 15px 0;
+            margin: 20px 0;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         h2 {
             color: var(--secondary-color);
             margin-top: 0;
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-size: 1.5rem;
             border-bottom: 2px solid var(--accent-color);
             padding-bottom: 0.5rem;
         }
 
-        /* Responsive table styles */
-        .table-container {
-            width: 100%;
+        .table-wrapper {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 15px 0;
-            border-radius: 8px;
+            margin: 20px 0;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 600px; /* Minimum width to prevent squishing */
         }
 
         th, td {
-            padding: 0.75rem;
+            padding: 12px;
             text-align: left;
-            border: none;
-            white-space: nowrap;
         }
 
         th {
             background-color: var(--primary-color);
             color: white;
             font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 1;
+            white-space: nowrap;
         }
 
         tr:nth-child(even) {
@@ -85,22 +81,18 @@
             background-color: #f7fafc;
         }
 
-        /* Scrollable table with fixed header */
         .scrollable-table {
             max-height: 300px;
             overflow-y: auto;
-            margin-top: 20px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
         }
 
         .chart {
             width: 100%;
-            height: clamp(300px, 50vh, 500px);
-            margin-top: 20px;
+            height: 400px;
             background-color: var(--card-background);
             border-radius: 8px;
-            padding: 1rem;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .projection-note {
@@ -108,15 +100,14 @@
             font-style: italic;
             margin-top: 10px;
             text-align: center;
-            font-size: 0.875rem;
         }
 
         .header-container {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.5rem 1rem;
+            padding: 20px;
             border-radius: 12px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 20px;
             text-align: center;
         }
 
@@ -127,14 +118,20 @@
 
         .summary-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        @media (min-width: 768px) {
+            .summary-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         .stat-card {
             background: var(--card-background);
-            padding: 1rem;
+            padding: 15px;
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -147,80 +144,27 @@
         }
 
         .stat-value {
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--primary-color);
         }
 
-        /* Mobile-specific styles */
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             body {
-                padding: 8px;
+                padding: 10px;
             }
 
             .loan-details {
-                padding: 0.75rem;
+                padding: 15px;
             }
 
-            .stat-card {
-                padding: 0.75rem;
+            table {
+                font-size: 0.9rem;
             }
 
-            /* Make tables scrollable horizontally on mobile */
-            .table-container {
-                margin: 10px -8px;
-                padding: 0 8px;
-                width: calc(100% + 16px);
-            }
-
-            /* Adjust cell padding for mobile */
-            th, td {
-                padding: 0.5rem;
-                font-size: 0.875rem;
-            }
-
-            /* Stack cells for payment history on mobile */
-            .payment-history-table td {
-                display: block;
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
-            }
-
-            .payment-history-table td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 0.5rem;
-                width: 45%;
-                text-align: left;
-                font-weight: 600;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background-color: #1a202c;
-                --card-background: #2d3748;
-                --primary-color: #4299e1;
-                --secondary-color: #63b3ed;
-                --accent-color: #90cdf4;
-            }
-
-            body {
-                color: #e2e8f0;
-            }
-
-            .stat-value {
-                color: #63b3ed;
-            }
-
-            tr:nth-child(even) {
-                background-color: #2d3748;
-            }
-
-            tr:nth-child(odd) {
-                background-color: #283141;
+            .chart {
+                height: 300px;
+                padding: 10px;
             }
         }
     </style>
