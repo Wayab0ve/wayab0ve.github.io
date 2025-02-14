@@ -491,61 +491,77 @@
                 ]
             },
             options: {
-                responsive: true,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'year'
-                        },
-                        grid: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date',
-                            color: '#718096'
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: '#e2e8f0'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Balance ($)',
-                            color: '#718096'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            boxWidth: 10,
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(26, 54, 93, 0.9)',
-                        padding: 12,
-                        borderColor: '#ffffff',
-                        borderWidth: 1,
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        displayColors: false,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: $${context.parsed.y.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-                            }
-                        }
-                    }
-                }
-            }
+				responsive: true,
+				interaction: {
+					intersect: false,
+					mode: 'index'
+				},
+				scales: {
+					x: {
+						type: 'time',
+						time: {
+							unit: 'year'
+						},
+						grid: {
+							display: false
+						},
+						title: {
+							display: true,
+							text: 'Date',
+							color: '#718096',
+							font: {
+								size: 16  // Increase the font size for the x-axis title
+							}
+						},
+						ticks: {
+							font: {
+								size: 14  // Increase the font size for the x-axis tick labels
+							}
+						}
+					},
+					y: {
+						grid: {
+							color: '#e2e8f0'
+						},
+						title: {
+							display: true,
+							text: 'Balance ($)',
+							color: '#718096',
+							font: {
+								size: 16  // Increase the font size for the y-axis title
+							}
+						},
+						ticks: {
+							font: {
+								size: 14  // Increase the font size for the y-axis tick labels
+							}
+						}
+					}
+				},
+				plugins: {
+					legend: {
+						labels: {
+							boxWidth: 10,
+							usePointStyle: true,
+							pointStyle: 'circle'
+						}
+					},
+					tooltip: {
+						backgroundColor: 'rgba(26, 54, 93, 0.9)',
+						padding: 12,
+						borderColor: '#ffffff',
+						borderWidth: 1,
+						titleColor: '#ffffff',
+						bodyColor: '#ffffff',
+						displayColors: false,
+						callbacks: {
+							label: function(context) {
+								return `${context.dataset.label}: $${context.parsed.y.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+							}
+						}
+					}
+				}
+			}
         });
     </script>
 </body>
